@@ -10,6 +10,7 @@ import { CommentsController } from './comments/api/comments.controller';
 
 // Blog entities
 import { Blog } from './blogs/domain/entities/blog.entity';
+import { Post } from './posts/domain/entities/post.entity';
 
 // Blog repositories
 import { BlogRepository } from './blogs/infrastructure/blog.repository';
@@ -93,7 +94,7 @@ const Repositories = [
 ];
 
 @Module({
-  imports: [CqrsModule, TypeOrmModule.forFeature([Blog])],
+  imports: [CqrsModule, TypeOrmModule.forFeature([Blog, Post])],
   providers: [
     ...BlogCommandHandlers,
     ...BlogQueryHandlers,

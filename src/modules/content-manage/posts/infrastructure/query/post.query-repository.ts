@@ -1,33 +1,38 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../../../../../core/database/database.service';
 import { GetPostsQueryParams } from '../../api/input-dto/get-posts-query-params.input-dto';
-import { DomainException } from '../../../../../core/exceptions/domain-exceptions';
-import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
-import { RawPostRow } from '../../../../../core/database/types/sql.types';
 import { ExtendedLikesInfoViewDto } from '../../api/view-dto/likesPost/extended-likes-info.view-dto';
 import { LikeStatus } from '../../api/input-dto/likesPost/like-status.enum';
-import { POST_SORT_FIELD_MAP } from '../../api/input-dto/post-sort-by';
+import { PostSortBy } from '../../api/input-dto/post-sort-by';
 import { LikeDetailsViewDto } from '../../api/view-dto/likesPost/like-details.view-dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Post } from '../../domain/entities/post.entity';
+import { Repository } from 'typeorm';
+import { FindPostByIdDto } from '../../domain/dto/post.domain.dto';
+import { DomainException } from '../../../../../core/exceptions/domain-exceptions';
+import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
 
 @Injectable()
 export class PostQueryRepository {
-  constructor(private readonly databaseService: DatabaseService) {}
+  constructor(
+    private readonly databaseService: DatabaseService,
+    @InjectRepository(Post)
+    private readonly repository: Repository<Post>,
+  ) {}
 
   async getByIdNotFoundFail(
-    id: string,
+    dto: FindPostByIdDto,
     userId?: string,
-  ): Promise<RawPostRow & { blog_name: string }> {
-    const query = `
-      SELECT p.*, b.name as blog_name
-      FROM posts p
-      JOIN blogs b ON p.blog_id = b.id
-      WHERE p.id = $1 AND p.deleted_at IS NULL AND b.deleted_at IS NULL 
-    `;
-    const result = await this.databaseService.query<
-      RawPostRow & { blog_name: string }
-    >(query, [id]);
+  ): Promise<Post> {
+    const post = await this.repository
+      .createQueryBuilder('post')
+      .leftJoinAndSelect('post.blog', 'blog')
+      .where('post.id=:id', { id: dto.id })
+      .andWhere('post.deletedAt IS NULL')
+      .andWhere('blog.deletedAt IS NULL')
+      .getOne();
 
-    if (result.rows.length === 0) {
+    if (!post) {
       throw new DomainException({
         code: DomainExceptionCode.NotFound,
         message: 'Post not found',
@@ -35,13 +40,13 @@ export class PostQueryRepository {
       });
     }
 
-    return result.rows[0]; // Возвращаем только данные из БД
+    return post;
   }
 
   async getAllPost(
     query: GetPostsQueryParams,
     userId?: string,
-  ): Promise<(RawPostRow & { blog_name: string })[]> {
+  ): Promise<[Post[], number]> {
     return this.getPosts(query, userId);
   }
 
@@ -49,7 +54,7 @@ export class PostQueryRepository {
     blogId: string,
     query: GetPostsQueryParams,
     userId?: string,
-  ): Promise<(RawPostRow & { blog_name: string })[]> {
+  ): Promise<[Post[], number]> {
     return this.getPosts(query, userId, blogId);
   }
 
@@ -57,82 +62,41 @@ export class PostQueryRepository {
     query: GetPostsQueryParams,
     userId?: string,
     blogId?: string,
-  ): Promise<(RawPostRow & { blog_name: string })[]> {
-    const { whereConditions, queryParams } = this.buildWhereConditions(
-      query.searchTitleTerm || undefined,
-      blogId,
-    );
+  ): Promise<[Post[], number]> {
+    const queryBuilder = this.repository
+      .createQueryBuilder('post')
+      .leftJoinAndSelect('post.blog', 'blog')
+      .where('post.deletedAt IS NULL')
+      .andWhere('blog.deletedAt IS NULL');
 
-    const orderBy = POST_SORT_FIELD_MAP[query.sortBy];
-    const direction = query.sortDirection.toUpperCase();
+    // Фильтр по blogId
+    if (blogId) {
+      queryBuilder.andWhere('post.blogId = :blogId', { blogId });
+    }
+
+    // Поиск по названию
+    if (query.searchTitleTerm) {
+      queryBuilder.andWhere('post.title ILIKE :titleTerm', {
+        titleTerm: `%${query.searchTitleTerm}%`,
+      });
+    }
+
+    // Сортировка
+    // BlogName маппится на blog.name, остальные поля используются напрямую из enum
+    const orderByField =
+      query.sortBy === PostSortBy.BlogName
+        ? 'blog.name'
+        : `post.${query.sortBy}`;
+    const direction = query.sortDirection.toUpperCase() as 'ASC' | 'DESC';
+    queryBuilder.orderBy(orderByField, direction);
+
+    // Пагинация
     const limit = query.pageSize;
     const offset = query.calculateSkip();
+    queryBuilder.limit(limit).offset(offset);
 
-    const postsQuery = `
-      SELECT p.*, b.name as blog_name
-      FROM posts p
-      JOIN blogs b ON p.blog_id = b.id
-      ${whereConditions}
-      ORDER BY ${orderBy} ${direction}
-      LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}
-    `;
-
-    const postsQueryParams = [...queryParams, limit, offset];
-
-    const result = await this.databaseService.query<
-      RawPostRow & { blog_name: string }
-    >(postsQuery, postsQueryParams);
-
-    return result.rows; // Возвращаем только данные из БД
-  }
-
-  async getTotalCount(
-    query: GetPostsQueryParams,
-    blogId?: string,
-  ): Promise<number> {
-    const { whereConditions, queryParams } = this.buildWhereConditions(
-      query.searchTitleTerm || undefined,
-      blogId,
-    );
-
-    const countQuery = `
-      SELECT COUNT(*)
-      FROM posts p
-      JOIN blogs b ON p.blog_id = b.id
-      ${whereConditions}
-    `;
-
-    const result = await this.databaseService.query<{ count: string }>(
-      countQuery,
-      queryParams,
-    );
-
-    return parseInt(result.rows[0].count);
-  }
-
-  private buildWhereConditions(
-    searchTitleTerm?: string,
-    blogId?: string,
-  ): { whereConditions: string; queryParams: (string | number)[] } {
-    const conditions = ['p.deleted_at IS NULL', 'b.deleted_at IS NULL'];
-
-    const queryParams: (string | number)[] = [];
-
-    if (blogId) {
-      conditions.push('p.blog_id = $1');
-      queryParams.push(blogId);
-    }
-
-    if (searchTitleTerm) {
-      const paramIndex = queryParams.length + 1;
-      conditions.push(`p.title ILIKE $${paramIndex}`);
-      queryParams.push(`%${searchTitleTerm}%`);
-    }
-
-    return {
-      whereConditions: `WHERE ${conditions.join(' AND ')}`,
-      queryParams,
-    };
+    // Получаем данные и общее количество одним запросом
+    return await queryBuilder.getManyAndCount();
   }
 
   /**
@@ -220,7 +184,7 @@ export class PostQueryRepository {
    * Получает расширенную информацию о лайках поста
    */
   async getExtendedLikesInfo(
-    postId: string,
+    postId: FindPostByIdDto,
     userId?: string,
   ): Promise<ExtendedLikesInfoViewDto> {
     const query = `
@@ -267,7 +231,15 @@ export class PostQueryRepository {
         userId: string;
         login: string;
       }>;
-    }>(query, [postId, userId || null]);
+    }>(query, [postId.id, userId || null]);
+
+    if (result.rows.length === 0) {
+      throw new DomainException({
+        code: DomainExceptionCode.NotFound,
+        message: 'Post not found',
+        field: 'Post',
+      });
+    }
 
     const row = result.rows[0];
     const newestLikes: LikeDetailsViewDto[] = row.newest_likes

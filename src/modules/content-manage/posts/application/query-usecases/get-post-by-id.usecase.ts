@@ -1,10 +1,11 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { PostViewDto } from '../../api/view-dto/post.view-dto';
 import { PostQueryRepository } from '../../infrastructure/query/post.query-repository';
+import { FindPostByIdDto } from '../../domain/dto/post.domain.dto';
 
 export class GetPostByIdQuery {
   constructor(
-    public readonly id: string,
+    public readonly id: FindPostByIdDto,
     public readonly userId?: string,
   ) {}
 }

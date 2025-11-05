@@ -29,7 +29,7 @@ export class DeletePostForBlogUseCase
     }
 
     // Проверяем, что пост принадлежит указанному блогу
-    if (post.blog_id !== command.blogId) {
+    if (post.blogId !== command.blogId) {
       throw new DomainException({
         code: DomainExceptionCode.NotFound,
         message: 'Post not found in this blog',

@@ -22,33 +22,28 @@ export class GetPostsForBlogUseCase
   async execute(
     query: GetAllPostsForBlogQuery,
   ): Promise<PaginatedViewDto<PostViewDto[]>> {
-    // 1. Получаем посты из БД
-    const posts = await this.postQueryRepository.getAllPostForBlog(
-      query.blogId,
-      query.queryParams,
-      query.userId,
-    );
+    // 1. Получаем посты и общее количество из БД одним запросом
+    const [posts, totalCount] =
+      await this.postQueryRepository.getAllPostForBlog(
+        query.blogId,
+        query.queryParams,
+        query.userId,
+      );
 
-    // 2. Получаем общее количество постов
-    const totalCount = await this.postQueryRepository.getTotalCount(
-      query.queryParams,
-      query.blogId,
-    );
-
-    // 3. Получаем лайки для всех постов
+    // 2. Получаем лайки для всех постов
     const postIds = posts.map((post) => post.id);
     const likesMap = await this.postQueryRepository.getLikesForPosts(
       postIds,
       query.userId,
     );
 
-    // 4. Логика объединения данных (перенесена из Repository)
+    // 3. Логика объединения данных
     const items = posts.map((post) => {
       const extendedLikesInfo = likesMap.get(post.id)!;
       return PostViewDto.mapToView(post, extendedLikesInfo);
     });
 
-    // 5. Возвращаем пагинированный результат
+    // 4. Возвращаем пагинированный результат
     return PaginatedViewDto.mapToView({
       items,
       totalCount,

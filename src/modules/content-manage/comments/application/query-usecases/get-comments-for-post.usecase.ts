@@ -4,10 +4,11 @@ import { GetCommentsQueryParams } from '../../api/input-dto/get-comments-query-p
 import { PaginatedViewDto } from '../../../../../core/dto/base.paginated.view-dto';
 import { CommentViewDto } from '../../api/view-dto/comment.view-dto';
 import { PostQueryRepository } from '../../../posts/infrastructure/query/post.query-repository';
+import { FindPostByIdDto } from '../../../posts/domain/dto/post.domain.dto';
 
 export class GetCommentsForPostQuery {
   constructor(
-    public readonly postId: string,
+    public readonly postId: FindPostByIdDto,
     public readonly query: GetCommentsQueryParams,
     public readonly userId?: string,
   ) {}

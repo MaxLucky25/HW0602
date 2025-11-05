@@ -56,7 +56,12 @@ export class E2ETestHelper {
   }
 
   static async cleanup(app: INestApplication, server: Server): Promise<void> {
-    await request(server).delete('/testing/all-data').expect(204);
+    try {
+      await request(server).delete('/testing/all-data').expect(204);
+    } catch (error) {
+      // Игнорируем ошибки при очистке, если приложение уже закрывается
+      console.warn('Error during cleanup:', error);
+    }
     await app.close();
   }
 }

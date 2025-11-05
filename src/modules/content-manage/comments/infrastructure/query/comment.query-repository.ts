@@ -7,6 +7,7 @@ import { RawCommentRow } from '../../../../../core/database/types/sql.types';
 import { LikeStatus } from '../../api/input-dto/comment-like.domain.dto';
 import { ExtendedLikesInfoViewDto } from '../../api/view-dto/extended-likes-info.view-dto';
 import { COMMENT_SORT_FIELD_MAP } from '../../api/input-dto/comment-sort-by';
+import { FindPostByIdDto } from '../../../posts/domain/dto/post.domain.dto';
 
 @Injectable()
 export class CommentQueryRepository {
@@ -40,7 +41,7 @@ export class CommentQueryRepository {
   }
 
   async getCommentsForPost(
-    postId: string,
+    postId: FindPostByIdDto,
     query: GetCommentsQueryParams,
     userId?: string,
   ): Promise<(RawCommentRow & { commentator_login: string })[]> {
@@ -67,7 +68,7 @@ export class CommentQueryRepository {
     return result.rows;
   }
 
-  async getTotalCountForPost(postId: string): Promise<number> {
+  async getTotalCountForPost(postId: FindPostByIdDto): Promise<number> {
     const query = `
       SELECT COUNT(*) as total
       FROM comments c

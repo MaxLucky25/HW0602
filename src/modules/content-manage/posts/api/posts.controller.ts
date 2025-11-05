@@ -54,7 +54,7 @@ export class PostsController {
     @Param('id') id: string,
     @ExtractUserIdForJwtOptionalGuard() userId?: string,
   ): Promise<PostViewDto> {
-    return this.queryBus.execute(new GetPostByIdQuery(id, userId));
+    return this.queryBus.execute(new GetPostByIdQuery({ id }, userId));
   }
 
   @Get()
@@ -113,7 +113,7 @@ export class PostsController {
     @ExtractUserIdForJwtOptionalGuard() userId?: string,
   ): Promise<PaginatedViewDto<CommentViewDto[]>> {
     return this.queryBus.execute(
-      new GetCommentsForPostQuery(postId, query, userId),
+      new GetCommentsForPostQuery({ id: postId }, query, userId),
     );
   }
 
