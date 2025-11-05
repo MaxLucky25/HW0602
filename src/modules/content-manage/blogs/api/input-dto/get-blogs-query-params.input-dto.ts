@@ -4,7 +4,6 @@ import { IsEnum, IsOptional, IsString } from 'class-validator';
 
 export class GetBlogsQueryParams extends BaseQueryParams {
   @IsEnum(BlogSortBy)
-  @IsOptional()
   sortBy = BlogSortBy.CreateAt;
   @IsString()
   @IsOptional()

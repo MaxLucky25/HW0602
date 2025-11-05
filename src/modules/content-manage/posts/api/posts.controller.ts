@@ -45,18 +45,6 @@ export class PostsController {
     private queryBus: QueryBus,
   ) {}
 
-  @Get(':id')
-  @UseGuards(OptionalJwtAuthGuard)
-  @ApiOperation({ summary: 'Get post by id' })
-  @ApiParam({ name: 'id', description: 'Post ID' })
-  @ApiResponse({ status: 200, description: 'Post found' })
-  async getById(
-    @Param('id') id: string,
-    @ExtractUserIdForJwtOptionalGuard() userId?: string,
-  ): Promise<PostViewDto> {
-    return this.queryBus.execute(new GetPostByIdQuery({ id }, userId));
-  }
-
   @Get()
   @UseGuards(OptionalJwtAuthGuard)
   @ApiOperation({ summary: 'Get all posts' })
@@ -70,6 +58,18 @@ export class PostsController {
     @ExtractUserIdForJwtOptionalGuard() userId?: string,
   ): Promise<PaginatedViewDto<PostViewDto[]>> {
     return this.queryBus.execute(new GetAllPostsQuery(query, userId));
+  }
+
+  @Get(':id')
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiOperation({ summary: 'Get post by id' })
+  @ApiParam({ name: 'id', description: 'Post ID' })
+  @ApiResponse({ status: 200, description: 'Post found' })
+  async getById(
+    @Param('id') id: string,
+    @ExtractUserIdForJwtOptionalGuard() userId?: string,
+  ): Promise<PostViewDto> {
+    return this.queryBus.execute(new GetPostByIdQuery({ id }, userId));
   }
 
   @Put(':postId/like-status')

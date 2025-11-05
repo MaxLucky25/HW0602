@@ -33,6 +33,20 @@ export class PublicBlogsController {
   async getAll(
     @Query() query: GetBlogsQueryParams,
   ): Promise<PaginatedViewDto<BlogViewDto[]>> {
+    // Логирование для отладки
+    console.log('=== GET /blogs ===');
+    console.log('Raw query params:', query);
+    console.log('Query type:', typeof query);
+    console.log('Query keys:', Object.keys(query));
+    console.log('Query values:', {
+      pageNumber: query.pageNumber,
+      pageSize: query.pageSize,
+      sortBy: query.sortBy,
+      sortDirection: query.sortDirection,
+      searchNameTerm: query.searchNameTerm,
+    });
+    console.log('==================');
+
     return this.queryBus.execute(new GetAllBlogsQuery(query));
   }
 
