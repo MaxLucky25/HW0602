@@ -51,19 +51,6 @@ export function pipesSetup(app: INestApplication) {
       stopAtFirstError: true,
       //Для преобразования ошибок класс валидатора в необходимый вид
       exceptionFactory: (errors) => {
-        // Логирование для отладки
-        console.log('=== VALIDATION ERRORS ===');
-        console.log('Errors count:', errors.length);
-        errors.forEach((error, index) => {
-          console.log(`Error ${index + 1}:`, {
-            property: error.property,
-            value: error.value,
-            constraints: error.constraints,
-            children: error.children,
-          });
-        });
-        console.log('========================');
-
         const formattedErrors = errorFormatter(errors);
 
         throw new DomainException({
