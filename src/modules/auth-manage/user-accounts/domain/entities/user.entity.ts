@@ -1,11 +1,17 @@
-import { Entity, Column, OneToOne, PrimaryColumn } from 'typeorm';
-import { BaseEntity } from '../../../../../core/database/base.entity';
+import {
+  Entity,
+  Column,
+  OneToOne,
+  PrimaryColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { CreateUserDomainDto } from '../dto/create-user.domain.dto';
 import { randomUUID } from 'crypto';
 import { EmailConfirmation } from './email-confirmation.entity';
 
 @Entity('users')
-export class User extends BaseEntity {
+export class User {
   @PrimaryColumn('uuid')
   id: string;
 
@@ -20,6 +26,25 @@ export class User extends BaseEntity {
 
   @Column({ name: 'is_email_confirmed', default: false })
   isEmailConfirmed: boolean;
+
+  @CreateDateColumn({
+    name: 'created_at',
+    type: 'timestamp',
+  })
+  createdAt: Date;
+
+  @UpdateDateColumn({
+    name: 'updated_at',
+    type: 'timestamp',
+  })
+  updatedAt: Date;
+
+  @Column({
+    name: 'deleted_at',
+    type: 'timestamp',
+    nullable: true,
+  })
+  deletedAt: Date | null;
 
   @OneToOne(
     () => EmailConfirmation,

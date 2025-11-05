@@ -1,11 +1,15 @@
 import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 // Controllers
 import { BlogsController } from './blogs/api/blogs.controller';
 import { PostsController } from './posts/api/posts.controller';
 import { PublicBlogsController } from './blogs/api/public-blogs.controller';
 import { CommentsController } from './comments/api/comments.controller';
+
+// Blog entities
+import { Blog } from './blogs/domain/entities/blog.entity';
 
 // Blog repositories
 import { BlogRepository } from './blogs/infrastructure/blog.repository';
@@ -89,7 +93,7 @@ const Repositories = [
 ];
 
 @Module({
-  imports: [CqrsModule],
+  imports: [CqrsModule, TypeOrmModule.forFeature([Blog])],
   providers: [
     ...BlogCommandHandlers,
     ...BlogQueryHandlers,

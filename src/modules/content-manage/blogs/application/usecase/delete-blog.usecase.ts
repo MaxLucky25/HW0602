@@ -1,4 +1,4 @@
-import { FindByIdDto } from '../../api/input-dto/blog.domain.dto';
+import { FindByIdDto } from '../../domain/dto/blog.domain.dto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { BlogRepository } from '../../infrastructure/blog.repository';
 

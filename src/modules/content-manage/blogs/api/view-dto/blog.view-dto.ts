@@ -1,4 +1,4 @@
-import { RawBlogRow } from '../../../../../core/database/types/sql.types';
+import { Blog } from '../../domain/entities/blog.entity';
 
 export class BlogViewDto {
   id: string;
@@ -8,15 +8,15 @@ export class BlogViewDto {
   createdAt: string;
   isMembership: boolean;
 
-  static mapToView(blog: RawBlogRow): BlogViewDto {
+  static mapToView(blog: Blog): BlogViewDto {
     const dto = new BlogViewDto();
 
     dto.id = blog.id;
     dto.name = blog.name;
     dto.description = blog.description;
-    dto.websiteUrl = blog.website_url;
-    dto.createdAt = new Date(blog.created_at).toISOString();
-    dto.isMembership = blog.is_membership;
+    dto.websiteUrl = blog.websiteUrl;
+    dto.createdAt = new Date(blog.createdAt).toISOString();
+    dto.isMembership = blog.isMembership;
 
     return dto;
   }

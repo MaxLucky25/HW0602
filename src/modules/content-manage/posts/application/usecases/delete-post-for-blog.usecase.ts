@@ -1,4 +1,4 @@
-import { FindPostByIdDto } from '../../api/input-dto/post.domain.dto';
+import { FindPostByIdDto } from '../../domain/dto/post.domain.dto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { PostRepository } from '../../infrastructure/postRepository';
 import { DomainException } from '../../../../../core/exceptions/domain-exceptions';

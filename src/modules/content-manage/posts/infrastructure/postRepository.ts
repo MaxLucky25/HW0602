@@ -2,12 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../../../../core/database/database.service';
 import { DomainException } from '../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../core/exceptions/domain-exception-codes';
+import { RawPostRow } from '../../../../core/database/types/sql.types';
+import { randomUUID } from 'crypto';
 import {
   CreatePostDomainDto,
   FindPostByIdDto,
-} from '../api/input-dto/post.domain.dto';
-import { RawPostRow } from '../../../../core/database/types/sql.types';
-import { randomUUID } from 'crypto';
+} from '../domain/dto/post.domain.dto';
 
 @Injectable()
 export class PostRepository {

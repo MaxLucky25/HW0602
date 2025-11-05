@@ -1,4 +1,4 @@
-import { BlogIdDto } from '../../api/input-dto/post.domain.dto';
+import { BlogIdDto } from '../../domain/dto/post.domain.dto';
 import { CreatePostForBlogInputDto } from '../../api/input-dto/create-post-for-blog.input.dto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { PostViewDto } from '../../api/view-dto/post.view-dto';

@@ -8,30 +8,6 @@ export interface TruncateResult {
   rowCount: number;
 }
 
-export interface RawSessionRow {
-  id: string;
-  token: string;
-  user_id: string;
-  device_id: string;
-  ip: string;
-  user_agent: string;
-  created_at: Date;
-  last_active_date: Date;
-  expires_at: Date;
-  is_revoked: boolean;
-}
-
-// Blog types
-export interface RawBlogRow {
-  id: string;
-  name: string;
-  description: string;
-  website_url: string;
-  is_membership: boolean;
-  created_at: Date;
-  deleted_at: Date | null;
-}
-
 // Post types
 export interface RawPostRow {
   id: string;
