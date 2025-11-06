@@ -63,7 +63,7 @@ export class CommentQueryRepository {
 
     const result = await this.databaseService.query<
       RawCommentRow & { commentator_login: string }
-    >(sqlQuery, [postId, limit, offset]);
+    >(sqlQuery, [postId.id, limit, offset]);
 
     return result.rows;
   }
@@ -77,7 +77,7 @@ export class CommentQueryRepository {
       WHERE c.post_id = $1 AND c.deleted_at IS NULL AND p.deleted_at IS NULL AND b.deleted_at IS NULL
     `;
     const result = await this.databaseService.query<{ total: string }>(query, [
-      postId,
+      postId.id,
     ]);
     return parseInt(result.rows[0].total, 10);
   }
